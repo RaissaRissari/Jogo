@@ -1,0 +1,234 @@
+Option Explicit
+
+Public Type Jogador
+    'ArmaPreferida(0) =  nome da arma
+    'ArmaPreferida(1) = quantidade de vezes que foi usada
+    
+    ArmaPreferida() As String
+    login           As String
+    MaiorSequencia  As Integer
+    assassinato     As Integer
+    morte           As Integer
+    premio          As Integer
+End Type
+
+Public Armas() As String
+Public valor() As String
+Public Gamers() As Jogador
+
+Sub LinhaALinhaLer()
+    Dim iFF         As Integer
+    Dim sLinha      As String
+    Dim dado        As String
+    Dim posicao     As Integer
+    Dim tempo       As Integer
+    Dim Data        As Date
+    Dim cont        As Integer
+    Dim Sequencia() As Integer
+    
+    ReDim Gamers(0)
+    
+    iFF = FreeFile
+    
+    Open ThisWorkbook.Path & "\" & "texto.txt" For Input As iFF
+    
+    Do While Not EOF(iFF)
+        Line Input #iFF, sLinha
+        dado = Split(sLinha, " - ")(1)
+        
+        If dado Like "New match*" And dado Like "*has started" Then
+            posicao = UBound(Gamers)
+            
+            Gamers(posicao).login = Split(dado, " ")(2)
+            
+            tempo = 0
+            cont = 0
+            ReDim Armas(0)
+            ReDim valor(0)
+            ReDim Sequencia(0)
+        End If
+        
+        If Split(dado, " ")(1) = "killed" And Not Split(dado, " ")(0) = "<WORLD>" Then
+            Gamers(posicao).assassinato = Gamers(posicao).assassinato + 1
+            
+            cont = cont + 1
+            
+            If tempo = 0 Then
+                tempo = minuto(sLinha)
+                Data = Dia(sLinha)
+            Else
+                If DateDiff("d", Data, Dia(sLinha)) = 0 Then
+                    If (minuto(sLinha) <= tempo + 1) And cont = 5 Then Gamers(posicao).premio = Gamers(posicao).premio + 1
+                End If
+            End If
+            
+            Call ListaDeArmas(CStr(Split(dado, " ")(4)))
+        ElseIf cont > 0 Then
+            Sequencia(UBound(Sequencia)) = cont
+            ReDim Preserve Sequencia(UBound(Sequencia) + 1)
+            cont = 0
+        End If
+        
+        If Split(dado, " ")(1) = "killed" And Split(dado, " ")(0) = "<WORLD>" Then
+            Gamers(posicao).morte = Gamers(posicao).morte + 1
+        End If
+        
+        If dado Like "*has ended" Then
+            Gamers(posicao).MaiorSequencia = SequenciaDeMortes(Sequencia)
+            Gamers(posicao).ArmaPreferida = armaMaisUsada
+            
+            If Gamers(posicao).morte = 0 Then Gamers(posicao).premio = Gamers(posicao - 1).premio + 1
+            
+            ReDim Preserve Gamers(posicao + 1)
+        End If
+    Loop
+    
+    Close iFF
+    
+    ReDim Preserve Gamers(posicao)
+    
+    Call RankingMortes
+    Call RankingAssassino
+End Sub
+
+Function minuto(linha As String) As Integer
+    minuto = CInt(Split(Split(Split(linha, " - ")(0), " ")(1), ":")(0))
+End Function
+
+Function Dia(linha As String) As Date
+    Dia = CDate(Split(Split(linha, " - ")(0), " ")(0))
+End Function
+
+
+Function SequenciaDeMortes(Sequencia() As Integer) As Integer
+    Dim i          As Integer
+    Dim quantidade As Integer
+    
+    quantidade = Sequencia(0)
+    
+    For i = 1 To UBound(Sequencia) - 1
+        If Sequencia(i) > quantidade Then
+            quantidade = Sequencia(i)
+        End If
+    Next
+    
+    SequenciaDeMortes = quantidade
+End Function
+
+Sub ListaDeArmas(nomeArma As String)
+    Dim i As Integer
+    
+    For i = 1 To UBound(Armas)
+        If nomeArma = Armas(i) Then
+            valor(i) = CInt(valor(i)) + 1
+            Exit Sub
+        End If
+    Next
+    
+    ReDim Preserve Armas(UBound(Armas) + 1)
+    ReDim Preserve valor(UBound(valor) + 1)
+    
+    Armas(UBound(Armas)) = nomeArma
+    valor(UBound(Armas)) = 1
+End Sub
+
+Function armaMaisUsada() As String()
+    Dim i            As Integer
+    Dim quantidade   As Integer
+    Dim posicao      As Integer
+    Dim Definicao(1) As String
+    
+    quantidade = valor(1)
+    posicao = 1
+    
+    For i = 2 To UBound(valor)
+        If valor(i) > quantidade Then
+            quantidade = valor(i)
+            posicao = i
+        End If
+    Next
+    
+    Definicao(0) = Armas(posicao)
+    Definicao(1) = valor(posicao)
+    
+    armaMaisUsada = Definicao
+End Function
+
+Sub RankingAssassino()
+    Dim i              As Integer
+    Dim j              As Integer
+    Dim n              As Integer
+    Dim posicao()      As Integer
+    Dim LoginPosicao() As String
+    Dim aux()          As Integer
+    Dim LoginAux()     As String
+    
+    ReDim posicao(UBound(Gamers))
+    ReDim LoginPosicao(UBound(Gamers))
+    ReDim aux(UBound(Gamers))
+    ReDim LoginAux(UBound(Gamers))
+    
+    For i = 0 To UBound(Gamers)
+        For j = 0 To UBound(Gamers)
+            If posicao(j) < Gamers(i).assassinato Then
+                For n = j To UBound(Gamers) - 1
+                    aux(n) = posicao(n)
+                    LoginAux(n) = LoginPosicao(n)
+                Next
+                
+                posicao(j) = Gamers(i).assassinato
+                LoginPosicao(j) = Gamers(i).login
+                
+                For n = j To UBound(Gamers) - 1
+                    posicao(n + 1) = aux(n)
+                    LoginPosicao(n + 1) = LoginAux(n)
+                Next
+                Exit For
+            End If
+        Next
+    Next
+    
+    For j = 0 To UBound(Gamers)
+        MsgBox "Quem matou mais vezes " & j + 1 & ": " & LoginPosicao(j)
+    Next
+End Sub
+
+Sub RankingMortes()
+    Dim i              As Integer
+    Dim j              As Integer
+    Dim n              As Integer
+    Dim posicao()      As Integer
+    Dim LoginPosicao() As String
+    Dim aux()          As Integer
+    Dim LoginAux()     As String
+    
+    ReDim posicao(UBound(Gamers))
+    ReDim LoginPosicao(UBound(Gamers))
+    ReDim aux(UBound(Gamers))
+    ReDim LoginAux(UBound(Gamers))
+    
+    For i = 0 To UBound(Gamers)
+        For j = 0 To UBound(Gamers)
+            If posicao(j) < Gamers(i).morte Then
+                For n = j To UBound(Gamers) - 1
+                    aux(n) = posicao(n)
+                    LoginAux(n) = LoginPosicao(n)
+                Next
+                
+                posicao(j) = Gamers(i).morte
+                LoginPosicao(j) = Gamers(i).login
+                
+                For n = j To UBound(Gamers) - 1
+                    posicao(n + 1) = aux(n)
+                    LoginPosicao(n + 1) = LoginAux(n)
+                Next
+                Exit For
+            End If
+        Next
+    Next
+    
+    For j = 0 To UBound(Gamers)
+        MsgBox "Quem morreu mais vezes " & j + 1 & ": " & LoginPosicao(j)
+    Next
+End Sub
+
