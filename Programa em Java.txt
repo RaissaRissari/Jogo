@@ -1,0 +1,257 @@
+class Jogador {
+	private ArrayList<String> Armas = new ArrayList<String>();
+	private ArrayList<Integer> VezesQUtizouAArma = new ArrayList<Integer>();
+    private String ArmaPreferida;
+    private String login; 
+    private Integer MaiorSequencia=0;  
+    private Integer Assassinato;     
+    private Integer Morte;           
+    private Integer Premio;          
+	
+	Public void DefinirMaiorSequencia(Integer Sequencia)
+	{
+		if(sequencia > this.MaiorSequencia)
+		{
+			this.MaiorSequencia = sequencia;
+		}
+	}
+	
+	Public void SetMarcarArmas(String Arma)
+	{
+		Integer i;
+		Boolean Existe;
+		Integer valor;
+		
+		Existe = False
+		
+		for(i=0;i<=this.Armas.size;i++)
+		{
+			if(this.Armas.get(i) == Arma)
+			{
+				valor = this.VezesQUtizouAArma.get(i);
+				valor ++;
+				this.VezesQUtizouAArma.add(bandas.indexOf(valor-1),valor); 
+				Existe = true;
+			}
+		}
+		if(Existe == False)
+		{
+			this.Armas.add(Arma);
+			this.VezesQUtizouAArma.add(1);
+		}
+	}
+	
+	Public void getArmaMaisUsada()
+	{
+		Integer i;
+		Integer Valor;
+		Integer Posicao=0;
+		
+		valor = this.VezesQUtizouAArma.get(0);
+		
+		for(i=1;i<=this.VezesQUtizouAArma.size;i++)
+		{
+			if(this.VezesQUtizouAArma.get(i)>Valor)
+			{
+				valor = cint(this.VezesQUtizouAArma.get(i))
+				Posicao = i
+			}
+		}
+		this.ArmaPreferida = this.Armas.get(Posicao)
+	}
+	
+	Public void getLogin()
+	{
+		return login;
+	}
+	
+	Public void setLogin(String Login)
+	{
+		this.login = Login;
+	}
+	
+	Public void getAssassinato()
+	{
+		return Assassinato;
+	}
+	
+	Public void setAssassinato(String assassinato)
+	{
+		this.Assassinato = assassinato;
+	}
+	
+	Public void getMorte()
+	{
+		return Morte;
+	}
+	
+	Public void setMorte(String morte)
+	{
+		this.Morte = morte;
+	}
+	
+	Public void getPremio()
+	{
+		return Premio;
+	}
+	
+	Public void setPremio(String premio)
+	{
+		this.Premio = premio;
+	}
+}
+
+class Jogo 
+{
+	public static void main(String[] args) 
+	{ 
+		Scanner ler = new Scanner(System.in); 
+		String Slinha="";
+		Integer Tempo;
+		Integer TempAux;
+		Integer Count;
+		Date data;
+		Jogador Gamer;
+		Integer j;
+		Integerm n;
+		Integer posicao[];
+		String LoginPosicao[];
+		Integer aux[];
+		String LoginAux[];
+		ArrayList<Jogador> LstJogador = new ArrayList();
+		String nome = "Texto.txt"; 
+		
+		try 
+		{ 
+			FileReader arq = new FileReader(nome); 
+			BufferedReader lerArq = new BufferedReader(arq); 
+			String linha = lerArq.readLine();
+			String dado[] = new String[1];
+			
+			while (linha != null) 
+			{ 
+				Slinha = linha;
+				dado = linha.split(" - ");
+				
+				If(dado[1] Like "New match*" And dado[1] Like "*has started")
+				{
+					Gamer = new Jogador;
+					Gamer.SetLogin(dado.Split(" ")(2));
+            
+					tempo = 0;
+					Count = 0;
+				}
+				
+				If(dado[1].Split(" ")(1) == "killed" And Not dado[1].Split(" ")(0) == "<WORLD>")
+				{
+					Gamer.assassinato ++;
+					Count++;
+					
+					If(tempo == 0)
+					{
+						Slinha= dado[0].Split(" ")(1);
+						Slinha =Slinha.Split(":")(0);
+						tempo = Cint(Slinha);
+						
+						Data = cdate(dado[0].Split(" ")(0));
+					}
+					Else
+					{
+						Slinha= dado[0].Split(" ")(1);
+						Slinha =Slinha.Split(":")(0);
+						TempAux = Cint(Slinha);
+						
+						If (Days.daysBetween(Data, cdate(dado[0].Split(" ")(0))).getDays()) = 0
+						{
+							If((TempAux <= tempo + 1) And Count = 5)
+							{
+								Gamer.premio ++;
+							}
+						}
+					}
+					
+					Gamer.SetMarcarArmas(CStr(dado.Split(" ")(4)))
+				}
+				ElseIf(Count > 0)
+				{
+					Gamer.DefinirMaiorSequencia(Count);
+					Count = 0;
+				}
+				
+				If(dado[1].Split(" ")(1) = "killed" And dado[1].Split(" ")(0) = "<WORLD>")
+				{
+					Gamer.morte ++;
+				}
+				
+				If (dado[1] Like "*has ended")
+				{
+					Gamer.getArmaMaisUsada;
+					
+					If(Gamer.morte = 0) 
+					{
+						Gamer.premio ++;
+					}
+					
+					LstJogador.add(Gamer)
+				}
+				linha = lerArq.readLine(); 
+			} 
+			arq.close(); 
+		} 
+		catch (IOException e) 
+		{ 
+			System.err.printf("Erro na abertura do arquivo: %s.\n", e.getMessage()); 
+		} 
+		
+		posicao= new Integer[LstJogador.Size];
+		LoginPosicao= new String[LstJogador.Size];
+		aux= new Integer[LstJogador.Size];
+		LoginAux= new String[LstJogador.Size];
+    
+		For(i = 0;i<=LstJogador.Size;i++)
+		{
+			For(j = 0;j<=LstJogador.Size;j++)
+				If(posicao[j] < LstJogador.get(i).Assassinato)
+					For(n = j, i<=LstJogador.Size - 1;n++)
+					{
+						aux[n] = posicao[n];
+						LoginAux[n] = LoginPosicao[n];
+					}
+					
+					posicao[j] = LstJogador.get[i].Assassinato;
+					LoginPosicao[j] = LstJogador.get[i].login;
+					
+					For(n = j;LstJogador.Size - 1;n++)
+					{
+						posicao(n + 1) = aux(n);
+						LoginPosicao(n + 1) = LoginAux(n);
+					}
+				}
+			}
+		}
+
+		For(i = 0;i<=LstJogador.Size;i++)
+		{
+			For(j = 0;j<=LstJogador.Size;j++)
+				If(posicao[j] < LstJogador.get(i).Morte)
+					For(n = j, i<=LstJogador.Size - 1;n++)
+					{
+						aux[n] = posicao[n];
+						LoginAux[n] = LoginPosicao[n];
+					}
+					
+					posicao[j] = LstJogador.get[i].Morte;
+					LoginPosicao[j] = LstJogador.get[i].login;
+					
+					For(n = j;LstJogador.Size - 1;n++)
+					{
+						posicao(n + 1) = aux(n);
+						LoginPosicao(n + 1) = LoginAux(n);
+					}
+				}
+			}
+		}
+	} 
+}
+
+}
